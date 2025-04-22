@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { FileText, Download, Save } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "sonner";
 
 // Arabic labels
 const LABELS = {
@@ -35,14 +36,21 @@ type Entry = {
 const LOCAL_STORAGE_KEY = "registration-entries-v1";
 
 function saveToLocalStorage(entries: Entry[]) {
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(entries));
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(entries));
+    return true;
+  } catch (error) {
+    console.error("Error saving to localStorage:", error);
+    return false;
+  }
 }
 
 function readFromLocalStorage(): Entry[] {
-  const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
   try {
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
-  } catch {
+  } catch (error) {
+    console.error("Error reading from localStorage:", error);
     return [];
   }
 }
@@ -57,8 +65,11 @@ const Index = () => {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
+  // Load data from localStorage on component mount
   useEffect(() => {
-    setEntries(readFromLocalStorage());
+    const loadedEntries = readFromLocalStorage();
+    console.log("Loaded entries:", loadedEntries);
+    setEntries(loadedEntries);
   }, []);
 
   // Input validation for Egypt
@@ -75,40 +86,61 @@ const Index = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    const v = validate();
-    if (v) {
-      setError(v);
+    
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      toast.error(validationError);
       return;
     }
+    
+    // First read existing entries to ensure we have the latest data
+    const existingEntries = readFromLocalStorage();
     const newEntry = { fullName, idNumber, phone, gender };
-    const updated = [...entries, newEntry];
-    setEntries(updated);
-    saveToLocalStorage(updated);
-    setSuccess("تم حفظ البيانات بنجاح!");
-    setFullName("");
-    setIdNumber("");
-    setPhone("");
-    setGender(LABELS.male);
+    const updated = [...existingEntries, newEntry];
+    
+    if (saveToLocalStorage(updated)) {
+      setEntries(updated);
+      setSuccess("تم حفظ البيانات بنجاح!");
+      toast.success("تم حفظ البيانات بنجاح!");
+      
+      // Reset form
+      setFullName("");
+      setIdNumber("");
+      setPhone("");
+      setGender(LABELS.male);
+    } else {
+      setError("حدث خطأ أثناء حفظ البيانات");
+      toast.error("حدث خطأ أثناء حفظ البيانات");
+    }
   };
 
   // Excel export (using sheetjs)
   const exportToExcel = () => {
     if (entries.length === 0) {
       setError("لا توجد بيانات للتصدير");
+      toast.error("لا توجد بيانات للتصدير");
       return;
     }
     
-    const ws = XLSX.utils.json_to_sheet(entries.map((e, i) => ({
-      "#": i + 1,
-      "الاسم الكامل": e.fullName,
-      "رقم الهوية": e.idNumber,
-      "رقم الهاتف": e.phone,
-      "الجنس": e.gender,
-    })));
-    
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "بيانات");
-    XLSX.writeFile(wb, "بيانات_التسجيل.xlsx");
+    try {
+      const ws = XLSX.utils.json_to_sheet(entries.map((e, i) => ({
+        "#": i + 1,
+        "الاسم الكامل": e.fullName,
+        "رقم الهوية": e.idNumber,
+        "رقم الهاتف": e.phone,
+        "الجنس": e.gender,
+      })));
+      
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "بيانات");
+      XLSX.writeFile(wb, "بيانات_التسجيل.xlsx");
+      toast.success("تم تحميل ملف الإكسل بنجاح");
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      setError("حدث خطأ أثناء تصدير البيانات");
+      toast.error("حدث خطأ أثناء تصدير البيانات");
+    }
   };
 
   return (
@@ -226,7 +258,7 @@ const Index = () => {
                 </TableHeader>
                 <TableBody>
                   {entries.map((entry, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={`entry-${index}`}>
                       <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell>{entry.fullName}</TableCell>
                       <TableCell>{entry.idNumber}</TableCell>
