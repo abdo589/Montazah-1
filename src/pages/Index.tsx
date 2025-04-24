@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FileText, Download, Save, Eye } from "lucide-react";
+import { FileText, Download, Save, Eye, EyeOff } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
@@ -62,6 +62,7 @@ const Index = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const [showData, setShowData] = useState(true);
 
   useEffect(() => {
     const loadedEntries = readFromLocalStorage();
@@ -233,45 +234,67 @@ const Index = () => {
         </div>
         
         <div className="w-full max-w-4xl bg-white/95 rounded-xl shadow-lg px-6 py-6 mb-8">
-          <h3 className="text-lg font-bold mb-4 text-center text-gray-800">{LABELS.dataTable}</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-800">{LABELS.dataTable}</h3>
+            <button
+              onClick={() => setShowData(!showData)}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              {showData ? (
+                <>
+                  <EyeOff size={18} />
+                  إخفاء البيانات
+                </>
+              ) : (
+                <>
+                  <Eye size={18} />
+                  إظهار البيانات
+                </>
+              )}
+            </button>
+          </div>
           
-          {entries.length > 0 ? (
-            <div className="max-h-[400px] overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">{LABELS.tableNum}</TableHead>
-                    <TableHead className="text-right">{LABELS.fullName}</TableHead>
-                    <TableHead className="text-right">{LABELS.idNumber}</TableHead>
-                    <TableHead className="text-right">{LABELS.phone}</TableHead>
-                    <TableHead className="text-right">{LABELS.gender}</TableHead>
-                    <TableHead className="text-right">عرض</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {entries.map((entry, index) => (
-                    <TableRow key={`entry-${index}`}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>{entry.fullName}</TableCell>
-                      <TableCell>{entry.idNumber}</TableCell>
-                      <TableCell>{entry.phone}</TableCell>
-                      <TableCell>{entry.gender}</TableCell>
-                      <TableCell>
-                        <Link 
-                          to={`/view/${index + 1}`}
-                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
-                        >
-                          <Eye size={18} />
-                          عرض
-                        </Link>
-                      </TableCell>
+          {showData ? (
+            entries.length > 0 ? (
+              <div className="max-h-[400px] overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">{LABELS.tableNum}</TableHead>
+                      <TableHead className="text-right">{LABELS.fullName}</TableHead>
+                      <TableHead className="text-right">{LABELS.idNumber}</TableHead>
+                      <TableHead className="text-right">{LABELS.phone}</TableHead>
+                      <TableHead className="text-right">{LABELS.gender}</TableHead>
+                      <TableHead className="text-right">عرض</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {entries.map((entry, index) => (
+                      <TableRow key={`entry-${index}`}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell>{entry.fullName}</TableCell>
+                        <TableCell>{entry.idNumber}</TableCell>
+                        <TableCell>{entry.phone}</TableCell>
+                        <TableCell>{entry.gender}</TableCell>
+                        <TableCell>
+                          <Link 
+                            to={`/view/${index + 1}`}
+                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                          >
+                            <Eye size={18} />
+                            عرض
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 py-4">{LABELS.noData}</div>
+            )
           ) : (
-            <div className="text-center text-gray-500 py-4">{LABELS.noData}</div>
+            <div className="text-center text-gray-500 py-4">البيانات مخفية</div>
           )}
         </div>
       </div>
