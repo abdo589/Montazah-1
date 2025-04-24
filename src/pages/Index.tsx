@@ -4,6 +4,9 @@ import * as XLSX from "xlsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const LABELS = {
   title: "نموذج تسجيل بيانات",
@@ -62,7 +65,9 @@ const Index = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
-  const [showData, setShowData] = useState(true);
+  const [showData, setShowData] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     const loadedEntries = readFromLocalStorage();
@@ -135,6 +140,24 @@ const Index = () => {
       setError("حدث خطأ أثناء تصدير البيانات");
       toast.error("حدث خطأ أثناء تصدير البيانات");
     }
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === "admin123") {
+      setIsAuthorized(true);
+      toast.success("تم تسجيل الدخول بنجاح");
+    } else {
+      toast.error("كلمة المرور غير صحيحة");
+    }
+  };
+
+  const handleToggleData = () => {
+    if (!isAuthorized) {
+      toast.error("يجب إدخال كلمة المرور أولاً");
+      return;
+    }
+    setShowData(!showData);
   };
 
   return (
@@ -236,25 +259,44 @@ const Index = () => {
         <div className="w-full max-w-4xl bg-white/95 rounded-xl shadow-lg px-6 py-6 mb-8">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-gray-800">{LABELS.dataTable}</h3>
-            <button
-              onClick={() => setShowData(!showData)}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              {showData ? (
-                <>
-                  <EyeOff size={18} />
-                  إخفاء البيانات
-                </>
-              ) : (
-                <>
-                  <Eye size={18} />
-                  إظهار البيانات
-                </>
-              )}
-            </button>
+            {isAuthorized ? (
+              <button
+                onClick={handleToggleData}
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                {showData ? (
+                  <>
+                    <EyeOff size={18} />
+                    إخفاء البيانات
+                  </>
+                ) : (
+                  <>
+                    <Eye size={18} />
+                    إظهار البيانات
+                  </>
+                )}
+              </button>
+            ) : (
+              <Card className="w-full max-w-md p-4">
+                <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                  <div>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="أدخل كلمة المرور"
+                      className="text-right"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    تسجيل الدخول
+                  </Button>
+                </form>
+              </Card>
+            )}
           </div>
           
-          {showData ? (
+          {isAuthorized && showData ? (
             entries.length > 0 ? (
               <div className="max-h-[400px] overflow-auto">
                 <Table>
@@ -294,7 +336,9 @@ const Index = () => {
               <div className="text-center text-gray-500 py-4">{LABELS.noData}</div>
             )
           ) : (
-            <div className="text-center text-gray-500 py-4">البيانات مخفية</div>
+            <div className="text-center text-gray-500 py-4">
+              {isAuthorized ? "البيانات مخفية" : "يرجى تسجيل الدخول لعرض البيانات"}
+            </div>
           )}
         </div>
       </div>
