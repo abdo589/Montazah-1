@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { FileText, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -47,12 +46,11 @@ const Index = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center py-8"
+      className="min-h-screen flex flex-col items-center py-8 bg-cover bg-center bg-no-repeat"
       style={{
-        backgroundImage: "url('/lovable-uploads/7c897df9-e478-4779-8ce6-b59b380bbe77.png')",
-        backgroundSize: "contain",
-        backgroundPosition: "center top",
-        backgroundRepeat: "no-repeat",
+        backgroundImage: "url('/lovable-uploads/e86c45f7-76ea-4e52-9f70-07075333499f.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
         backgroundColor: "#f0f4f8",
         direction: "rtl"
       }}
@@ -96,4 +94,3 @@ const Index = () => {
 };
 
 export default Index;
-
