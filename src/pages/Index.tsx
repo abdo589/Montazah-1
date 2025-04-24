@@ -1,73 +1,16 @@
+
 import React, { useEffect, useState } from "react";
-import { FileText, Download, Save, Eye, EyeOff } from "lucide-react";
-import * as XLSX from "xlsx";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { FileText, Download } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-
-const LABELS = {
-  title: "نموذج تسجيل بيانات",
-  fullName: "الاسم الكامل",
-  idNumber: "رقم الهوية",
-  phone: "رقم الهاتف",
-  gender: "الجنس",
-  male: "ذكر",
-  female: "أنثى",
-  placeholderName: "أدخل الاسم الكامل",
-  placeholderID: "أدخل رقم الهوية المكون من 14 رقمًا",
-  placeholderPhone: "أدخل رقم الهاتف المكون من 11 رقمًا",
-  save: "حفظ البيانات",
-  download: "تحميل ملف اكسل",
-  registerTitle: "تسجيل بيانات جديدة",
-  footer: "© حزب مستقبل وطن 2025 - أمانة الشباب",
-  dataTable: "البيانات المسجلة",
-  tableNum: "#",
-  noData: "لا توجد بيانات مسجلة بعد"
-};
-
-type Entry = {
-  fullName: string;
-  idNumber: string;
-  phone: string;
-  gender: string;
-};
-
-const LOCAL_STORAGE_KEY = "registration-entries-v1";
-
-function saveToLocalStorage(entries: Entry[]) {
-  try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(entries));
-    return true;
-  } catch (error) {
-    console.error("Error saving to localStorage:", error);
-    return false;
-  }
-}
-
-function readFromLocalStorage(): Entry[] {
-  try {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch (error) {
-    console.error("Error reading from localStorage:", error);
-    return [];
-  }
-}
+import { RegistrationForm } from "@/components/RegistrationForm";
+import { EntriesTable } from "@/components/EntriesTable";
+import { LABELS } from "@/constants/labels";
+import { type Entry, saveToLocalStorage, readFromLocalStorage, exportToExcel } from "@/utils/storage";
 
 const Index = () => {
-  const [fullName, setFullName] = useState("");
-  const [idNumber, setIdNumber] = useState("");
-  const [phone, setPhone] = useState("");
-  const [gender, setGender] = useState(LABELS.male);
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
   const [showData, setShowData] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [password, setPassword] = useState("");
 
   useEffect(() => {
     const loadedEntries = readFromLocalStorage();
@@ -75,75 +18,17 @@ const Index = () => {
     setEntries(loadedEntries);
   }, []);
 
-  const validate = () => {
-    if (!fullName.trim()) return "يرجى إدخال الاسم الكامل";
-    if (!/^\d{14}$/.test(idNumber)) return "رقم الهوية يجب أن يكون 14 رقمًا";
-    if (!/^\d{11}$/.test(phone)) return "رقم الهاتف يجب أن يكون 11 رقمًا";
-    if (gender !== LABELS.male && gender !== LABELS.female)
-      return "يرجى تحديد الجنس";
-    return "";
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      toast.error(validationError);
-      return;
-    }
-    
-    const existingEntries = readFromLocalStorage();
-    const newEntry = { fullName, idNumber, phone, gender };
-    const updated = [...existingEntries, newEntry];
-    
+  const handleSubmit = (newEntry: Entry) => {
+    const updated = [...entries, newEntry];
     if (saveToLocalStorage(updated)) {
       setEntries(updated);
-      setSuccess("تم حفظ البيانات بنجاح!");
       toast.success("تم حفظ البيانات بنجاح!");
-      
-      setFullName("");
-      setIdNumber("");
-      setPhone("");
-      setGender(LABELS.male);
     } else {
-      setError("حدث خطأ أثناء حفظ البيانات");
       toast.error("حدث خطأ أثناء حفظ البيانات");
     }
   };
 
-  const exportToExcel = () => {
-    if (entries.length === 0) {
-      setError("لا توجد بيانات للتصدير");
-      toast.error("لا توجد بيانات للتصدير");
-      return;
-    }
-    
-    try {
-      const ws = XLSX.utils.json_to_sheet(entries.map((e, i) => ({
-        "#": i + 1,
-        "الاسم الكامل": e.fullName,
-        "رقم الهوية": e.idNumber,
-        "رقم الهاتف": e.phone,
-        "الجنس": e.gender,
-      })));
-      
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "بيانات");
-      XLSX.writeFile(wb, "بيانات_التسجيل.xlsx");
-      toast.success("تم تحميل ملف الإكسل بنجاح");
-    } catch (error) {
-      console.error("Error exporting to Excel:", error);
-      setError("حدث خطأ أثناء تصدير البيانات");
-      toast.error("حدث خطأ أثناء تصدير البيانات");
-    }
-  };
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePasswordSubmit = (password: string) => {
     if (password === "admin123") {
       setIsAuthorized(true);
       toast.success("تم تسجيل الدخول بنجاح");
@@ -180,75 +65,13 @@ const Index = () => {
           </div>
           
           <h2 className="text-xl font-bold text-center mb-4 text-gray-800">{LABELS.title}</h2>
-          {error && <div className="bg-red-50 text-red-600 text-center p-2 rounded mb-4">{error}</div>}
-          {success && <div className="bg-green-50 text-green-600 text-center p-2 rounded mb-4">{success}</div>}
           
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-1">
-              <label className="text-gray-700 font-medium">{LABELS.fullName}</label>
-              <input
-                className="bg-gray-100 px-4 py-3 rounded placeholder:text-gray-400 focus:outline-blue-400"
-                type="text"
-                placeholder={LABELS.placeholderName}
-                value={fullName}
-                dir="rtl"
-                onChange={e => setFullName(e.target.value)}
-                autoComplete="off"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-gray-700 font-medium">{LABELS.idNumber}</label>
-              <input
-                className="bg-gray-100 px-4 py-3 rounded placeholder:text-gray-400 focus:outline-blue-400"
-                type="text"
-                placeholder={LABELS.placeholderID}
-                value={idNumber}
-                inputMode="numeric"
-                maxLength={14}
-                dir="rtl"
-                onChange={e => setIdNumber(e.target.value.replace(/\D/g, ""))}
-                autoComplete="off"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-gray-700 font-medium">{LABELS.phone}</label>
-              <input
-                className="bg-gray-100 px-4 py-3 rounded placeholder:text-gray-400 focus:outline-blue-400"
-                type="text"
-                placeholder={LABELS.placeholderPhone}
-                value={phone}
-                inputMode="numeric"
-                maxLength={11}
-                dir="rtl"
-                onChange={e => setPhone(e.target.value.replace(/\D/g, ""))}
-                autoComplete="off"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-gray-700 font-medium">{LABELS.gender}</label>
-              <select
-                className="bg-gray-100 px-4 py-3 rounded focus:outline-blue-400"
-                value={gender}
-                onChange={e => setGender(e.target.value)}
-                dir="rtl"
-              >
-                <option>{LABELS.male}</option>
-                <option>{LABELS.female}</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white rounded py-3 mt-1 flex items-center justify-center gap-2 text-lg hover:bg-blue-700 transition"
-            >
-              <Save size={20} />
-              {LABELS.save}
-            </button>
-          </form>
+          <RegistrationForm onSubmit={handleSubmit} />
           
           {entries.length > 0 && (
             <button
               className="w-full bg-green-600 text-white rounded py-3 mt-4 flex items-center justify-center gap-2 text-base hover:bg-green-700 transition"
-              onClick={exportToExcel}
+              onClick={() => exportToExcel(entries)}
             >
               <Download size={18} />
               {LABELS.download}
@@ -256,91 +79,13 @@ const Index = () => {
           )}
         </div>
         
-        <div className="w-full max-w-4xl bg-white/95 rounded-xl shadow-lg px-6 py-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">{LABELS.dataTable}</h3>
-            {isAuthorized ? (
-              <button
-                onClick={handleToggleData}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                {showData ? (
-                  <>
-                    <EyeOff size={18} />
-                    إخفاء البيانات
-                  </>
-                ) : (
-                  <>
-                    <Eye size={18} />
-                    إظهار البيانات
-                  </>
-                )}
-              </button>
-            ) : (
-              <Card className="w-full max-w-md p-4">
-                <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                  <div>
-                    <Input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="أدخل كلمة المرور"
-                      className="text-right"
-                    />
-                  </div>
-                  <Button type="submit" className="w-full">
-                    تسجيل الدخول
-                  </Button>
-                </form>
-              </Card>
-            )}
-          </div>
-          
-          {isAuthorized && showData ? (
-            entries.length > 0 ? (
-              <div className="max-h-[400px] overflow-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right">{LABELS.tableNum}</TableHead>
-                      <TableHead className="text-right">{LABELS.fullName}</TableHead>
-                      <TableHead className="text-right">{LABELS.idNumber}</TableHead>
-                      <TableHead className="text-right">{LABELS.phone}</TableHead>
-                      <TableHead className="text-right">{LABELS.gender}</TableHead>
-                      <TableHead className="text-right">عرض</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {entries.map((entry, index) => (
-                      <TableRow key={`entry-${index}`}>
-                        <TableCell className="font-medium">{index + 1}</TableCell>
-                        <TableCell>{entry.fullName}</TableCell>
-                        <TableCell>{entry.idNumber}</TableCell>
-                        <TableCell>{entry.phone}</TableCell>
-                        <TableCell>{entry.gender}</TableCell>
-                        <TableCell>
-                          <Link 
-                            to={`/view/${index + 1}`}
-                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
-                          >
-                            <Eye size={18} />
-                            عرض
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-4">{LABELS.noData}</div>
-            )
-          ) : (
-            <div className="text-center text-gray-500 py-4">
-              {isAuthorized ? "البيانات مخفية" : "يرجى تسجيل الدخول لعرض البيانات"}
-            </div>
-          )}
-        </div>
+        <EntriesTable
+          entries={entries}
+          isAuthorized={isAuthorized}
+          showData={showData}
+          onToggleData={handleToggleData}
+          onPasswordSubmit={handlePasswordSubmit}
+        />
       </div>
       
       <div className="mt-auto pt-4 text-gray-100 text-sm font-medium drop-shadow-md bg-blue-600/50 w-full text-center py-2">
@@ -351,3 +96,4 @@ const Index = () => {
 };
 
 export default Index;
+
