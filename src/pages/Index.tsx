@@ -1,11 +1,10 @@
-
 import React, { useEffect, useState } from "react";
-import { FileText, Download, Save } from "lucide-react";
+import { FileText, Download, Save, Eye } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
-// Arabic labels
 const LABELS = {
   title: "نموذج تسجيل بيانات",
   fullName: "الاسم الكامل",
@@ -56,7 +55,6 @@ function readFromLocalStorage(): Entry[] {
 }
 
 const Index = () => {
-  // Form state
   const [fullName, setFullName] = useState("");
   const [idNumber, setIdNumber] = useState("");
   const [phone, setPhone] = useState("");
@@ -65,14 +63,12 @@ const Index = () => {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
-  // Load data from localStorage on component mount
   useEffect(() => {
     const loadedEntries = readFromLocalStorage();
     console.log("Loaded entries:", loadedEntries);
     setEntries(loadedEntries);
   }, []);
 
-  // Input validation for Egypt
   const validate = () => {
     if (!fullName.trim()) return "يرجى إدخال الاسم الكامل";
     if (!/^\d{14}$/.test(idNumber)) return "رقم الهوية يجب أن يكون 14 رقمًا";
@@ -94,7 +90,6 @@ const Index = () => {
       return;
     }
     
-    // First read existing entries to ensure we have the latest data
     const existingEntries = readFromLocalStorage();
     const newEntry = { fullName, idNumber, phone, gender };
     const updated = [...existingEntries, newEntry];
@@ -104,7 +99,6 @@ const Index = () => {
       setSuccess("تم حفظ البيانات بنجاح!");
       toast.success("تم حفظ البيانات بنجاح!");
       
-      // Reset form
       setFullName("");
       setIdNumber("");
       setPhone("");
@@ -115,7 +109,6 @@ const Index = () => {
     }
   };
 
-  // Excel export (using sheetjs)
   const exportToExcel = () => {
     if (entries.length === 0) {
       setError("لا توجد بيانات للتصدير");
@@ -156,7 +149,6 @@ const Index = () => {
       }}
     >
       <div className="w-full max-w-4xl px-4 mt-[220px] sm:mt-[250px] md:mt-[300px] lg:mt-[350px] flex flex-col items-center">
-        {/* Form Card */}
         <div className="w-full max-w-md bg-white/95 rounded-xl shadow-lg px-6 py-8 mb-8">
           <div className="rounded-b-lg bg-blue-600 text-white px-6 py-2 text-lg font-bold flex items-center gap-2 shadow-lg mb-6 -mt-8 mx-auto w-fit">
             <FileText size={20} />
@@ -240,8 +232,7 @@ const Index = () => {
           )}
         </div>
         
-        {/* Data Table */}
-        <div className="w-full bg-white/95 rounded-xl shadow-lg px-6 py-6 mb-8">
+        <div className="w-full max-w-4xl bg-white/95 rounded-xl shadow-lg px-6 py-6 mb-8">
           <h3 className="text-lg font-bold mb-4 text-center text-gray-800">{LABELS.dataTable}</h3>
           
           {entries.length > 0 ? (
@@ -254,6 +245,7 @@ const Index = () => {
                     <TableHead className="text-right">{LABELS.idNumber}</TableHead>
                     <TableHead className="text-right">{LABELS.phone}</TableHead>
                     <TableHead className="text-right">{LABELS.gender}</TableHead>
+                    <TableHead className="text-right">عرض</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -264,6 +256,15 @@ const Index = () => {
                       <TableCell>{entry.idNumber}</TableCell>
                       <TableCell>{entry.phone}</TableCell>
                       <TableCell>{entry.gender}</TableCell>
+                      <TableCell>
+                        <Link 
+                          to={`/view/${index + 1}`}
+                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                        >
+                          <Eye size={18} />
+                          عرض
+                        </Link>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -275,7 +276,6 @@ const Index = () => {
         </div>
       </div>
       
-      {/* Footer */}
       <div className="mt-auto pt-4 text-gray-100 text-sm font-medium drop-shadow-md bg-blue-600/50 w-full text-center py-2">
         {LABELS.footer}
       </div>
