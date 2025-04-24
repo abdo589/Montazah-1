@@ -1,13 +1,13 @@
 
 import React from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LABELS } from "../constants/labels";
-import { type Entry } from "../utils/storage";
+import { type Entry, exportToExcel } from "../utils/storage";
 import { toast } from "sonner";
 
 interface EntriesTableProps {
@@ -37,22 +37,33 @@ export const EntriesTable = ({
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold text-gray-800">{LABELS.dataTable}</h3>
         {isAuthorized ? (
-          <button
-            onClick={onToggleData}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
-          >
-            {showData ? (
-              <>
-                <EyeOff size={18} />
-                إخفاء البيانات
-              </>
-            ) : (
-              <>
-                <Eye size={18} />
-                إظهار البيانات
-              </>
+          <div className="flex items-center gap-4">
+            {entries.length > 0 && (
+              <button
+                onClick={() => exportToExcel(entries)}
+                className="flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors"
+              >
+                <Download size={18} />
+                {LABELS.download}
+              </button>
             )}
-          </button>
+            <button
+              onClick={onToggleData}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              {showData ? (
+                <>
+                  <EyeOff size={18} />
+                  إخفاء البيانات
+                </>
+              ) : (
+                <>
+                  <Eye size={18} />
+                  إظهار البيانات
+                </>
+              )}
+            </button>
+          </div>
         ) : (
           <Card className="w-full max-w-md p-4">
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
@@ -120,4 +131,3 @@ export const EntriesTable = ({
     </div>
   );
 };
-

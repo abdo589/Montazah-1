@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { RegistrationForm } from "@/components/RegistrationForm";
 import { EntriesTable } from "@/components/EntriesTable";
 import { LABELS } from "@/constants/labels";
-import { type Entry, saveToLocalStorage, readFromLocalStorage, exportToExcel } from "@/utils/storage";
+import { type Entry, saveToLocalStorage, readFromLocalStorage } from "@/utils/storage";
 
 const Index = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -22,6 +22,8 @@ const Index = () => {
     const updated = [...entries, newEntry];
     if (saveToLocalStorage(updated)) {
       setEntries(updated);
+      setIsAuthorized(false); // Reset authorization after new entry
+      setShowData(false); // Hide data after new entry
       toast.success("تم حفظ البيانات بنجاح!");
     } else {
       toast.error("حدث خطأ أثناء حفظ البيانات");
@@ -66,16 +68,6 @@ const Index = () => {
           <h2 className="text-xl font-bold text-center mb-4 text-gray-800">{LABELS.title}</h2>
           
           <RegistrationForm onSubmit={handleSubmit} />
-          
-          {entries.length > 0 && (
-            <button
-              className="w-full bg-green-600 text-white rounded py-3 mt-4 flex items-center justify-center gap-2 text-base hover:bg-green-700 transition"
-              onClick={() => exportToExcel(entries)}
-            >
-              <Download size={18} />
-              {LABELS.download}
-            </button>
-          )}
         </div>
         
         <EntriesTable
