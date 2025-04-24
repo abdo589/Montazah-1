@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { FileText, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -28,7 +29,7 @@ const Index = () => {
   };
 
   const handlePasswordSubmit = (password: string) => {
-    if (password === "admin123") {
+    if (password === "0504") {
       setIsAuthorized(true);
       toast.success("تم تسجيل الدخول بنجاح");
     } else {
