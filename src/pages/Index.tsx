@@ -1,20 +1,18 @@
 
 import React, { useEffect, useState } from "react";
-import { FileText, Download } from "lucide-react";
+import { FileText } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { RegistrationForm } from "@/components/RegistrationForm";
-import { EntriesTable } from "@/components/EntriesTable";
 import { LABELS } from "@/constants/labels";
 import { type Entry, saveToLocalStorage, readFromLocalStorage } from "@/utils/storage";
 
 const Index = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [showData, setShowData] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     const loadedEntries = readFromLocalStorage();
-    console.log("Loaded entries:", loadedEntries);
     setEntries(loadedEntries);
   }, []);
 
@@ -22,29 +20,10 @@ const Index = () => {
     const updated = [...entries, newEntry];
     if (saveToLocalStorage(updated)) {
       setEntries(updated);
-      setIsAuthorized(false); // Reset authorization after new entry
-      setShowData(false); // Hide data after new entry
       toast.success("تم حفظ البيانات بنجاح!");
     } else {
       toast.error("حدث خطأ أثناء حفظ البيانات");
     }
-  };
-
-  const handlePasswordSubmit = (password: string) => {
-    if (password === "0504") {
-      setIsAuthorized(true);
-      toast.success("تم تسجيل الدخول بنجاح");
-    } else {
-      toast.error("كلمة المرور غير صحيحة");
-    }
-  };
-
-  const handleToggleData = () => {
-    if (!isAuthorized) {
-      toast.error("يجب إدخال كلمة المرور أولاً");
-      return;
-    }
-    setShowData(!showData);
   };
 
   return (
@@ -68,15 +47,15 @@ const Index = () => {
           <h2 className="text-xl font-bold text-center mb-4 text-gray-800">{LABELS.title}</h2>
           
           <RegistrationForm onSubmit={handleSubmit} />
+          
+          <div className="mt-4 text-center">
+            <Link to="/login">
+              <Button variant="outline" className="w-full">
+                عرض البيانات المسجلة
+              </Button>
+            </Link>
+          </div>
         </div>
-        
-        <EntriesTable
-          entries={entries}
-          isAuthorized={isAuthorized}
-          showData={showData}
-          onToggleData={handleToggleData}
-          onPasswordSubmit={handlePasswordSubmit}
-        />
       </div>
       
       <div className="mt-auto pt-4 text-gray-100 text-sm font-medium drop-shadow-md bg-blue-600/50 w-full text-center py-2">
