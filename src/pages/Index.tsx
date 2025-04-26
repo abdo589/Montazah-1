@@ -21,6 +21,8 @@ const Index = () => {
     if (saveToLocalStorage(updated)) {
       setEntries(updated);
       toast.success("تم حفظ البيانات بنجاح!");
+      // Reset form by forcing a re-render
+      window.location.reload();
     } else {
       toast.error("حدث خطأ أثناء حفظ البيانات");
     }
