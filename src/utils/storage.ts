@@ -1,5 +1,7 @@
 
 import { toast } from "sonner";
+// Import XLSX properly for ES modules
+import * as XLSX from 'xlsx';
 
 export type Entry = {
   fullName: string;
@@ -36,8 +38,8 @@ export function exportToExcel(entries: Entry[]) {
     return;
   }
   
-  const XLSX = require('xlsx');
   try {
+    // Create worksheet with Arabic data
     const ws = XLSX.utils.json_to_sheet(entries.map((e, i) => ({
       "#": i + 1,
       "الاسم الكامل": e.fullName,
@@ -46,8 +48,11 @@ export function exportToExcel(entries: Entry[]) {
       "الجنس": e.gender,
     })));
     
+    // Create workbook and append worksheet
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "بيانات");
+    
+    // Write file using the writeFile utility
     XLSX.writeFile(wb, "بيانات_التسجيل.xlsx");
     toast.success("تم تحميل ملف الإكسل بنجاح");
   } catch (error) {
@@ -55,4 +60,3 @@ export function exportToExcel(entries: Entry[]) {
     toast.error("حدث خطأ أثناء تصدير البيانات");
   }
 }
-
