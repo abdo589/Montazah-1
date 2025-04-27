@@ -1,4 +1,3 @@
-
 export const LABELS = {
   title: "نموذج تسجيل بيانات",
   fullName: "الاسم الكامل",
@@ -13,7 +12,7 @@ export const LABELS = {
   save: "حفظ البيانات",
   download: "تحميل ملف اكسل",
   registerTitle: "تسجيل بيانات جديدة",
-  footer: "© حزب مستقبل وطن 2025 - أمانة الشباب",
+  footer: "أمانة الإسكندرية حزب مستقبل وطن - امانة شباب قسم منتزة اول 2025",
   dataTable: "البيانات المسجلة",
   tableNum: "#",
   noData: "لا توجد بيانات مسجلة بعد",
@@ -21,4 +20,3 @@ export const LABELS = {
   submit: "تسجيل الدخول",
   wrongPassword: "كلمة المرور غير صحيحة"
 };
-
