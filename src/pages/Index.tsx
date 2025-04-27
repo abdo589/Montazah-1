@@ -1,25 +1,15 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RegistrationForm } from "@/components/RegistrationForm";
 import { LABELS } from "@/constants/labels";
-import { type Entry, saveToLocalStorage, readFromLocalStorage } from "@/utils/storage";
+import { type Entry, saveToDatabase } from "@/utils/storage";
 
 const Index = () => {
-  const [entries, setEntries] = useState<Entry[]>([]);
-
-  useEffect(() => {
-    const loadedEntries = readFromLocalStorage();
-    setEntries(loadedEntries);
-  }, []);
-
-  const handleSubmit = (newEntry: Entry) => {
-    const updated = [...entries, newEntry];
-    if (saveToLocalStorage(updated)) {
-      setEntries(updated);
+  const handleSubmit = async (newEntry: Entry) => {
+    if (await saveToDatabase(newEntry)) {
       toast.success("تم حفظ البيانات بنجاح!");
       // Reset form by forcing a re-render
       window.location.reload();

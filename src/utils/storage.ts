@@ -1,7 +1,6 @@
-
 import { toast } from "sonner";
-// Import XLSX properly for ES modules
 import * as XLSX from 'xlsx';
+import { supabase } from "@/integrations/supabase/client";
 
 export type Entry = {
   fullName: string;
@@ -10,24 +9,42 @@ export type Entry = {
   gender: string;
 };
 
-const LOCAL_STORAGE_KEY = "registration-entries-v1";
-
-export function saveToLocalStorage(entries: Entry[]) {
+export async function saveToDatabase(entry: Entry) {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(entries));
+    const { error } = await supabase
+      .from('registrations')
+      .insert({
+        full_name: entry.fullName,
+        id_number: entry.idNumber,
+        phone: entry.phone,
+        gender: entry.gender
+      });
+
+    if (error) throw error;
     return true;
   } catch (error) {
-    console.error("Error saving to localStorage:", error);
+    console.error("Error saving to database:", error);
     return false;
   }
 }
 
-export function readFromLocalStorage(): Entry[] {
+export async function readFromDatabase(): Promise<Entry[]> {
   try {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    const { data, error } = await supabase
+      .from('registrations')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map(record => ({
+      fullName: record.full_name,
+      idNumber: record.id_number,
+      phone: record.phone,
+      gender: record.gender
+    }));
   } catch (error) {
-    console.error("Error reading from localStorage:", error);
+    console.error("Error reading from database:", error);
     return [];
   }
 }

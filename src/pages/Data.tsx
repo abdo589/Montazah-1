@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EntriesTable } from "@/components/EntriesTable";
-import { readFromLocalStorage } from "@/utils/storage";
+import { readFromDatabase } from "@/utils/storage";
 import { type Entry } from "@/utils/storage";
 
 const Data = () => {
@@ -17,8 +17,12 @@ const Data = () => {
       return;
     }
     
-    const loadedEntries = readFromLocalStorage();
-    setEntries(loadedEntries);
+    const loadEntries = async () => {
+      const loadedEntries = await readFromDatabase();
+      setEntries(loadedEntries);
+    };
+    
+    loadEntries();
   }, [navigate]);
 
   const handleToggleData = () => {
