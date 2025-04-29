@@ -1,3 +1,4 @@
+
 export const LABELS = {
   title: "نموذج تسجيل بيانات",
   fullName: "الاسم الكامل",
@@ -18,5 +19,8 @@ export const LABELS = {
   noData: "لا توجد بيانات مسجلة بعد",
   enterPassword: "أدخل كلمة المرور",
   submit: "تسجيل الدخول",
-  wrongPassword: "كلمة المرور غير صحيحة"
+  wrongPassword: "كلمة المرور غير صحيحة",
+  partyTitle: "حزب مستقبل وطن",
+  subTitle: "أمانة شباب قسم منتزة أول",
+  year: "2025"
 };
